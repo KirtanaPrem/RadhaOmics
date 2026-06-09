@@ -49,6 +49,11 @@ div[data-testid="stSidebar"] { display: none; }
 .ro-logo span { color: #1B6CA8; }
 .ro-nav-r { font-size: 11px; color: #bbb; letter-spacing: 0.04em; }
 
+.ro-hero {
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 0.5px solid #e5e7eb;
+    background: #fff;
+}
 .ro-pill {
     display: inline-flex; align-items: center; gap: 5px;
     font-size: 11px; color: #1B6CA8; background: #EBF3FA;
@@ -56,7 +61,7 @@ div[data-testid="stSidebar"] { display: none; }
 }
 .ro-h1 { font-size: 28px; font-weight: 300; letter-spacing: -0.03em; line-height: 1.2; margin-bottom: 0.75rem; color: #111; }
 .ro-h1 em { font-family: 'Instrument Serif', serif; font-style: italic; color: #1B6CA8; }
-.ro-sub { font-size: 13px; color: #555; font-weight: 300; line-height: 1.7; margin-bottom: 1.5rem; }
+.ro-sub { font-size: 13px; color: #555; font-weight: 300; line-height: 1.7; max-width: 600px; }
 
 .sl { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: #bbb; margin-bottom: 8px; display: block; }
 .side-big { font-size: 22px; font-weight: 400; color: #1B6CA8; letter-spacing: -0.04em; line-height: 1; margin-bottom: 2px; }
@@ -130,11 +135,20 @@ div[data-testid="stSidebar"] { display: none; }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Nav ───────────────────────────────────────────────────
+# ── Nav — full width ──────────────────────────────────────
 st.markdown("""
 <div class="ro-nav">
   <div class="ro-logo">RadhaOmics<span>.</span></div>
   <div class="ro-nav-r">FDA SABV &nbsp;·&nbsp; NIH SABV &nbsp;·&nbsp; Open source</div>
+</div>
+""", unsafe_allow_html=True)
+
+# ── Hero — full width ─────────────────────────────────────
+st.markdown("""
+<div class="ro-hero">
+  <div class="ro-pill">● Tissue-specific sex-bias detection</div>
+  <h1 class="ro-h1">Your omics data might be <em>missing</em> half the picture.</h1>
+  <p class="ro-sub">RadhaOmics computes the BiasΔ score — the first tissue-aware metric quantifying exactly how much sex imbalance distorts your biological conclusions.</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -178,12 +192,6 @@ with left:
 with main:
     st.markdown("<div style='padding:1.75rem 2.25rem;'>", unsafe_allow_html=True)
 
-    # Hero — always shown
-    st.markdown('<div class="ro-pill">● Tissue-specific sex-bias detection</div>', unsafe_allow_html=True)
-    st.markdown('<h1 class="ro-h1">Your omics data might be<br><em>missing</em> half the picture.</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="ro-sub">RadhaOmics computes the BiasΔ score — the first tissue-aware metric quantifying exactly how much sex imbalance distorts your biological conclusions.</p>', unsafe_allow_html=True)
-
-    st.markdown('<span class="section-label">Step 1 — Upload your dataset</span>', unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Upload", type=["csv","tsv","txt"], label_visibility="collapsed")
     st.markdown("<div style='font-size:11px;color:#aaa;margin-top:4px;margin-bottom:8px;'>CSV, TSV · RNA-seq · GWAS · Proteomics · Single-cell · Microarray · max 200MB</div>", unsafe_allow_html=True)
     load_example = st.button("Load example RNA-seq dataset →")
@@ -247,7 +255,6 @@ with main:
         </div>
         """, unsafe_allow_html=True)
 
-        # Distribution + Compliance
         st.markdown('<span class="section-label">Sample distribution & compliance</span>', unsafe_allow_html=True)
         dc1, dc2 = st.columns(2)
         with dc1:
@@ -259,40 +266,32 @@ with main:
                 textinfo="none",
             ))
             fig.update_layout(
-                height=220,
-                margin=dict(t=10, b=40, l=10, r=10),
+                height=220, margin=dict(t=10,b=50,l=10,r=10),
                 showlegend=True,
-                legend=dict(
-                    orientation="h",
-                    yanchor="top", y=-0.05,
-                    xanchor="center", x=0.5,
-                    font=dict(size=11, family="Inter"),
-                ),
+                legend=dict(orientation="h", yanchor="top", y=-0.05,
+                            xanchor="center", x=0.5,
+                            font=dict(size=11, family="Inter")),
                 paper_bgcolor="rgba(0,0,0,0)",
-                annotations=[dict(
-                    text=f"<b>{ratio['total']}</b><br>samples",
-                    x=0.5, y=0.5, font_size=13,
-                    font_family="Inter", showarrow=False
-                )]
+                annotations=[dict(text=f"<b>{ratio['total']}</b><br>samples",
+                                  x=0.5, y=0.5, font_size=13,
+                                  font_family="Inter", showarrow=False)]
             )
             st.plotly_chart(fig, use_container_width=True)
-            st.markdown(f'<div style="font-size:11px;color:#C1440E;">M:F {ratio["mf_ratio"]}:1 — {"exceeds threshold" if ratio["ratio_flag"] else "within threshold"}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div style="font-size:11px;color:#C1440E;margin-top:-8px;">M:F {ratio["mf_ratio"]}:1 — {"exceeds threshold" if ratio["ratio_flag"] else "within threshold"}</div>', unsafe_allow_html=True)
 
         with dc2:
-            checks = [
+            for label, ok, val, dot_color in [
                 ("Sex ratio ≤ 1.5:1",  not ratio["ratio_flag"], f"{ratio['mf_ratio']}:1", "#E24B4A"),
                 ("FDA SABV",           not ratio["ratio_flag"], "Fail" if ratio["ratio_flag"] else "Pass", "#E24B4A"),
                 ("NIH SABV",           not ratio["ratio_flag"], "Fail" if ratio["ratio_flag"] else "Pass", "#E24B4A"),
                 ("Female power ≥ 80%", not power["power_flag"], f"{round(power['achieved_power']*100)}%", "#EF9F27"),
                 ("Sex metadata",       True, "Pass", "#639922"),
                 ("Sample size ≥ 100",  ratio["total"] >= 100, str(ratio["total"]), "#639922"),
-            ]
-            for label, ok, val, dot_color in checks:
+            ]:
                 vc = "#3B6D11" if ok else "#C1440E"
-                dc = "#639922" if ok else dot_color
-                st.markdown(f'<div class="check-row"><span><span class="dot" style="background:{dc};"></span>{label}</span><span style="color:{vc};font-weight:500;">{val}</span></div>', unsafe_allow_html=True)
+                dc_color = "#639922" if ok else dot_color
+                st.markdown(f'<div class="check-row"><span><span class="dot" style="background:{dc_color};"></span>{label}</span><span style="color:{vc};font-weight:500;">{val}</span></div>', unsafe_allow_html=True)
 
-        # DEG Impact
         st.markdown('<span class="section-label">Differential expression impact</span>', unsafe_allow_html=True)
         st.markdown("""
         <table class="deg-table">
@@ -308,7 +307,6 @@ with main:
         <div style="font-size:10px;color:#888;margin-bottom:1rem;">3 of 5 top DEGs would lose significance in a sex-balanced cohort</div>
         """, unsafe_allow_html=True)
 
-        # BiasΔ breakdown
         tw = round(GTEX_TISSUE_WEIGHTS.get(tissue, 0.25), 2)
         imb = bd["imbalance"]
         fp = bd["flag_penalty"]
@@ -331,14 +329,12 @@ with main:
         </div>
         """, unsafe_allow_html=True)
 
-        # Gene flags
         if flags:
             st.markdown('<span class="section-label">Sex-biased genes detected</span>', unsafe_allow_html=True)
             flag_df = pd.DataFrame(flags)
             flag_df.columns = ["Gene","Chromosome","Bias direction","Risk"]
             st.dataframe(flag_df, use_container_width=True, hide_index=True)
 
-        # Recommendations
         st.markdown('<span class="section-label">Corrective recommendations</span>', unsafe_allow_html=True)
         st.markdown("""
         <div class="rec-item"><div class="rec-num">01</div><div class="rec-text"><strong>Add female samples from TCGA</strong> — +113 female samples needed to reach 1.5:1 threshold. portal.gdc.cancer.gov</div></div>
@@ -347,7 +343,6 @@ with main:
         <div class="rec-item"><div class="rec-num">04</div><div class="rec-text"><strong>Disclose in methods section</strong> — use citation below to comply with NIH and FDA requirements</div></div>
         """, unsafe_allow_html=True)
 
-        # Submission checklist
         ratio_ok = not ratio["ratio_flag"]
         power_ok = not power["power_flag"]
         genes_ok = not flags
@@ -361,7 +356,6 @@ with main:
         <div class="sub-row"><div class="sub-check sub-yes">✓</div><span>RadhaOmics analysis cited</span></div>
         """, unsafe_allow_html=True)
 
-        # Citation
         citation = (
             f"Sex bias analysis was performed using RadhaOmics v1.0 "
             f"(github.com/KirtanaPrem/RadhaOmics). "
@@ -376,8 +370,7 @@ with main:
         st.code(citation, language=None)
 
     else:
-        # Landing feature cards
-        st.divider()
+        st.markdown("<div style='height:1.5rem;'></div>", unsafe_allow_html=True)
         f1, f2 = st.columns(2)
         features = [
             ("Sex ratio audit",    "M:F threshold vs NIH and FDA guidelines"),
